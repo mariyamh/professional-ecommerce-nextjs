@@ -723,3 +723,103 @@ Give a ‚≠êÔ∏è if this project helped you!
 ---
 
 **Built with ‚ù§Ô∏è using NestJS**
+
+## Ì≥∏ Image Upload (S3)
+
+### AWS S3 Setup
+
+1. **Create S3 Bucket**
+```bash
+aws s3api create-bucket --bucket ecommerce-products-yourname --region us-east-1
+```
+
+2. **Get AWS Credentials**
+   - Go to AWS Console ‚Üí IAM ‚Üí Users ‚Üí Create User
+   - Attach `AmazonS3FullAccess` policy
+   - Create access keys
+   - Add to `.env`
+
+3. **Upload Product Image**
+```bash
+# Single image
+curl -X POST http://localhost:3000/api/v1/products/upload-image \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+  -F "image=@/path/to/image.jpg"
+
+# Response
+{
+  "success": true,
+  "imageUrl": "https://your-bucket.s3.us-east-1.amazonaws.com/products/uuid.jpg",
+  "message": "Image uploaded successfully"
+}
+
+# Multiple images (max 5)
+curl -X POST http://localhost:3000/api/v1/products/upload-images \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+  -F "images=@image1.jpg" \
+  -F "images=@image2.jpg"
+```
+
+4. **Create Product with Images**
+```bash
+curl -X POST http://localhost:3000/api/v1/products \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "iPhone 15 Pro",
+    "slug": "iphone-15-pro",
+    "sku": "SKU-001",
+    "description": "Latest iPhone",
+    "price": 999.99,
+    "stock": 50,
+    "category": "ELECTRONICS",
+    "images": [
+      "https://your-bucket.s3.us-east-1.amazonaws.com/products/uuid1.jpg",
+      "https://your-bucket.s3.us-east-1.amazonaws.com/products/uuid2.jpg"
+    ]
+  }'
+```
+
+### Image Validation
+- **Allowed formats:** JPEG, PNG, WebP
+- **Max file size:** 5MB per image
+- **Max images per product:** 5
+
+## Ì∫Ä Deployment
+
+See detailed deployment guide in [DEPLOYMENT.md](DEPLOYMENT.md)
+
+### Quick Deploy Options
+
+**1. Heroku (Easiest)**
+```bash
+heroku create
+heroku addons:create heroku-postgresql:mini
+git push heroku master
+```
+
+**2. AWS (Production)**
+- See [DEPLOYMENT.md](DEPLOYMENT.md#aws-deployment) for complete guide
+- Includes EC2, RDS, S3, Load Balancer setup
+
+**3. DigitalOcean**
+- Create Droplet + Managed PostgreSQL
+- See [DEPLOYMENT.md](DEPLOYMENT.md#digitalocean-deployment)
+
+### Environment Variables for Production
+```env
+NODE_ENV=production
+DB_HOST=production-db-host
+JWT_SECRET=super-secure-random-string
+AWS_ACCESS_KEY_ID=your-production-key
+STRIPE_SECRET_KEY=sk_live_your-live-key
+```
+
+### Monitoring & Logging
+
+Recommended tools:
+- **Sentry** - Error tracking
+- **DataDog** - Performance monitoring
+- **CloudWatch** - AWS logs
+- **LogRocket** - Session replay
+
