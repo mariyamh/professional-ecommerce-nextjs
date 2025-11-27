@@ -21,7 +21,7 @@ export class PaymentsService {
     this.stripe = new Stripe(
       this.configService.get<string>('STRIPE_SECRET_KEY') || 'sk_test_dummy',
       {
-        apiVersion: '2024-11-20.acacia',
+        apiVersion: '2024-11-20.acacia' as any,
       },
     );
   }
@@ -37,16 +37,14 @@ export class PaymentsService {
       throw new BadRequestException('Order is not in pending status');
     }
 
-    // Create Stripe payment intent
     const paymentIntent = await this.stripe.paymentIntents.create({
-      amount: Math.round(createPaymentIntentDto.amount * 100), // Convert to cents
+      amount: Math.round(createPaymentIntentDto.amount * 100),
       currency: 'usd',
       metadata: {
         orderId: order.id,
       },
     });
 
-    // Create payment record
     const payment = this.paymentsRepository.create({
       orderId: order.id,
       amount: createPaymentIntentDto.amount,
@@ -76,15 +74,12 @@ export class PaymentsService {
       throw new NotFoundException('Payment not found');
     }
 
-    // Verify payment with Stripe
     const paymentIntent = await this.stripe.paymentIntents.retrieve(
       paymentIntentId,
     );
 
     if (paymentIntent.status === 'succeeded') {
       payment.status = PaymentStatus.SUCCESS;
-
-      // Update order status
       await this.ordersService.updateStatus(payment.orderId, {
         status: OrderStatus.PROCESSING,
       });
@@ -128,7 +123,6 @@ export class PaymentsService {
       throw new BadRequestException('Webhook signature verification failed');
     }
 
-    // Handle different event types
     switch (event.type) {
       case 'payment_intent.succeeded':
         const paymentIntent = event.data.object as Stripe.PaymentIntent;

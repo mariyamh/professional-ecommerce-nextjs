@@ -3,7 +3,6 @@ import {
   Post,
   Body,
   UseGuards,
-  Request,
   Get,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
@@ -14,6 +13,7 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { Public } from '../../common/decorators/public.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { User } from '../users/entities/user.entity';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -31,15 +31,15 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('login')
   @ApiOperation({ summary: 'Login user' })
-  login(@Body() loginDto: LoginDto, @Request() req) {
-    return this.authService.login(req.user);
+  login(@Body() loginDto: LoginDto, @CurrentUser() user: User) {
+    return this.authService.login(user);
   }
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Get('profile')
   @ApiOperation({ summary: 'Get current user profile' })
-  getProfile(@CurrentUser() user) {
+  getProfile(@CurrentUser() user: User) {
     return user;
   }
 }
