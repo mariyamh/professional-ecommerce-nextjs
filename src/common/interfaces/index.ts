@@ -1,4 +1,4 @@
-import { UserRole } from '../enums';
+import { UserRole } from "../enums";
 
 export interface JwtPayload {
   sub: string;
@@ -6,7 +6,13 @@ export interface JwtPayload {
   role: UserRole;
 }
 
-export interface ApiResponse<T = any> {
+export interface AuthUser {
+  userId: string;
+  email: string;
+  role: string;
+}
+
+export interface ApiResponse<T = unknown> {
   success: boolean;
   message: string;
   data?: T;
